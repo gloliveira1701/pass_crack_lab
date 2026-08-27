@@ -29,7 +29,7 @@ pass_crack_lab/
 ├── index.html        # Página principal do dashboard visual
 ├── style.css         # Estilização cibernética e responsiva
 ├── app.js            # Lógica cliente, dataset de 40 desafios e utilitários JS
-└── gabarito.md       # Gabarito contendo as respostas (para uso dos professores)
+
 ```
 
 ---
@@ -40,7 +40,7 @@ Para que os serviços simulados de FTP, SSH e o servidor HTTP funcionem na porta
 
 ```bash
 # 1. Entre no diretório do projeto
-cd /home/gloliveira/Documentos/Projetos/pass_crack_lab
+cd pass_crack_lab
 
 # 2. Garanta que o script de start seja executável (já configurado)
 chmod +x start.sh
