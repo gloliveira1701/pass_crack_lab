@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pass-Crack Lab: Quebra de Senhas e Criptoanálise</title>
+    <meta name="description" content="Laboratório pedagógico para treinamento prático de criptoanálise, quebra de hashes com John/Hashcat, brute-force de serviços com Hydra e conceitos de wordlists.">
+    
+    <!-- Google Fonts: Inter e Fira Code -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Link para a folha de estilo customizada -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Fundo Cibernético Animado -->
+    <div class="cyber-grid"></div>
+
+    <header class="app-header">
+        <div class="header-logo">
+            <div class="glow-dot"></div>
+            <h1>PASS-CRACK LAB</h1>
+            <span class="badge badge-accent">V1.0.0</span>
+        </div>
+        <div class="lab-status-bar">
+            <div class="status-item" id="status-score-top" style="border-right: 1px solid var(--border-color); padding-right: 1rem;">
+                <span class="label">Pontuação:</span>
+                <span class="value text-success" id="stats-score-header" style="font-weight: 800; font-size: 1.1rem; text-shadow: 0 0 10px rgba(0,255,102,0.4);">0 Pts</span>
+            </div>
+            <div class="status-item" id="status-privilege">
+                <span class="label">Privilégios:</span>
+                <span class="value text-warning">Verificando...</span>
+            </div>
+            <div class="status-item" id="status-ssh">
+                <span class="label">SSH (9022):</span>
+                <span class="value text-success">Ativa</span>
+            </div>
+            <div class="status-item" id="status-ftp">
+                <span class="label">FTP (9021):</span>
+                <span class="value text-success">Ativo</span>
+            </div>
+            <div class="status-item" id="status-hash-port">
+                <span class="label">Hash TCP (9005):</span>
+                <span class="value text-success">Ativa</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="app-layout">
+        <!-- Barra de Navegação Lateral -->
+        <aside class="sidebar">
+            <nav class="nav-menu">
+                <button class="nav-btn active" data-target="dashboard" id="btn-nav-dashboard">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+                    Painel Geral
+                </button>
+                <button class="nav-btn" data-target="teoria" id="btn-nav-teoria">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5.49 9L12 5.6 18.51 9 12 12.4 5.49 9zm.51 6.68v3.58L12 23l6-3.74v-3.58l-6 3.26-6-3.26z"/></svg>
+                    Fundamentação
+                </button>
+                <button class="nav-btn" data-target="ferramentas-web" id="btn-nav-ferramentas-web">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+                    Decoders & Hash ID
+                </button>
+                <button class="nav-btn" data-target="toolkits" id="btn-nav-toolkits">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.3C.5 6.7.9 9.8 2.9 11.8c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.4-2.4c.4-.4.4-1.1 0-1.4z"/></svg>
+                    ToolKits (Guias)
+                </button>
+                <button class="nav-btn" data-target="desafios" id="btn-nav-desafios">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 13.59z"/></svg>
+                    Desafios (CTF)
+                </button>
+                <button class="nav-btn" data-target="desempenho" id="btn-nav-desempenho">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                    Desempenho
+                </button>
+                <button class="nav-btn" data-target="ids" id="btn-nav-ids">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                    Console de Auditoria <span class="pulse-indicator red-glow"></span>
+                </button>
+            </nav>
+            
+            <!-- Widget de Progresso do Aluno -->
+            <div class="progress-widget">
+                <span class="widget-title">Progresso Geral</span>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" id="progress-fill" style="width: 0%;"></div>
+                </div>
+                <div class="progress-labels">
+                    <span id="progress-percent">0% Concluído</span>
+                    <span id="progress-fraction">0/40 Resolvidos</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Área de Conteúdo Principal -->
+        <main class="main-content">
+            
+            <!-- SECTION: DASHBOARD -->
+            <section id="pane-dashboard" class="content-pane active">
+                <div class="welcome-banner">
+                    <h2>Laboratório Prático de Quebra de Senhas e hashes.</h2>
+                    <p class="author-tag">Criado por <strong>Professor Engenheiro Guilherme Legal de Oliveira</strong>.</p>
+                    <p style="margin-top: 1rem;">Explore e domine as técnicas e ferramentas de quebra de senhas (offline e online) como Hashcat, John the Ripper, Hydra e utilitários de identificação e decodificação, em um ambiente autocontido e prático.</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue-glow">🔑</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="stats-logins-count">0</span>
+                            <span class="stat-label">Tentativas de Login Logadas</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple-glow">⚡</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="stats-brute-count">0</span>
+                            <span class="stat-label">Bloqueios por Brute-force</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green-glow">🏁</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="stats-completed">0/40</span>
+                            <span class="stat-label">Desafios Concluídos</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange-glow">🏆</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="stats-score">0</span>
+                            <span class="stat-label">Pontuação Total</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-details">
+                    <div class="card card-wide">
+                        <h3>Guia Rápido de Inicialização</h3>
+                        <p>Prepare seu terminal do Kali Linux local instalando e preparando os recursos essenciais:</p>
+                        <div class="terminal-mock">
+                            <div class="terminal-header">
+                                <span class="dot red"></span>
+                                <span class="dot yellow"></span>
+                                <span class="dot green"></span>
+                                <span class="title">terminal - Kali Linux</span>
+                            </div>
+                            <div class="terminal-body">
+                                <p class="command"><span class="prompt">kali@kali:~$</span> # 1. Garanta a instalação dos pacotes necessários</p>
+                                <p class="output">sudo apt update && sudo apt install -y hashcat john hydra hashid seclists crunch cewl</p>
+                                <p class="command"><span class="prompt">kali@kali:~$</span> # 2. Descompacte a wordlist RockYou padrão (se necessário)</p>
+                                <p class="output">sudo gzip -d /usr/share/wordlists/rockyou.txt.gz</p>
+                                <p class="command"><span class="prompt">kali@kali:~$</span> # 3. Teste a conexão aos serviços locais brute-forcáveis para ver o log em tempo real na console de auditoria!</p>
+                                <p class="output">nc -vn 127.0.0.1 9022 # Conecta ao mock SSH</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: TEORIA -->
+            <section id="pane-teoria" class="content-pane">
+                <div class="page-header">
+                    <h2>Fundamentação Teórica sobre Criptoanálise e Wordlists</h2>
+                    <p>Conceitos fundamentais de hash, wordlists e repositórios de dados.</p>
+                </div>
+
+                <!-- Abas da Teoria -->
+                <div class="tabs-nav">
+                    <button class="tab-btn active" data-tab="tab-hashes">Criptografia & Hashes</button>
+                    <button class="tab-btn" data-tab="tab-wordlists">Wordlists & Repositórios</button>
+                    <button class="tab-btn" data-tab="tab-legal">Legislação e Ética</button>
+                </div>
+
+                <!-- TAB: HASHES -->
+                <div id="tab-hashes" class="tab-content active">
+                    <h3>O que são Funções Hash?</h3>
+                    <p>Uma função hash criptográfica é um algoritmo unidirecional que mapeia dados de tamanho variável em um bloco de tamanho fixo (o hash). Uma alteração mínima nos dados de entrada altera completamente o hash resultante (Efeito Avalanche).</p>
+                    
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Algoritmo</th>
+                                    <th>Tamanho (Bits)</th>
+                                    <th>Tamanho (Hex)</th>
+                                    <th>Exemplo de Formato e Uso</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>MD5</strong></td>
+                                    <td>128 bits</td>
+                                    <td>32 caracteres</td>
+                                    <td><code>098f6bcd4621d373cade4e832627b4f6</code> (Legado, rápido)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>SHA-1</strong></td>
+                                    <td>160 bits</td>
+                                    <td>40 caracteres</td>
+                                    <td><code>a9993e364706816aba3e25717850c26c9cd0d89d</code> (Vulnerável)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>SHA-256</strong></td>
+                                    <td>256 bits</td>
+                                    <td>64 caracteres</td>
+                                    <td><code>ba7816bf8f01cfea414140de5dae2223b00361a396...</code> (Padrão atual)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>bcrypt</strong></td>
+                                    <td>Variável (Blowfish)</td>
+                                    <td>60 caracteres</td>
+                                    <td><code>$2a$12$R9h/cIPz0gi.UR3RYy...</code> (Salt embutido, lento)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <h3 style="margin-top: 2rem;">Ataque Offline vs. Ataque Online</h3>
+                    <p>Ataques <strong>Offline</strong> consistem em computar hashes localmente a partir de palpites e compará-los com o hash roubado. É extremamente rápido porque não depende da rede. Ataques <strong>Online</strong> envolvem enviar palpites para um serviço de rede (como uma página web ou SSH). São lentos e propensos a bloqueios (ex: fail2ban).</p>
+                </div>
+
+                <!-- TAB: WORDLISTS & REPOSITÓRIOS -->
+                <div id="tab-wordlists" class="tab-content">
+                    <h3>Localização de Wordlists no Kali Linux</h3>
+                    <p>No Kali Linux, a maioria dos dicionários de palavras padrão fica armazenada sob o diretório:</p>
+                    <div class="code-copy">
+                        <span>/usr/share/wordlists</span>
+                        <button class="btn-copy" onclick="navigator.clipboard.writeText('/usr/share/wordlists')">Copiar</button>
+                    </div>
+                    <p>Dentro desse diretório, você encontra:</p>
+                    <ul>
+                        <li><code>rockyou.txt</code>: Wordlist contendo 14.3 milhões de senhas reais vazadas. Vem compactada como <code>rockyou.txt.gz</code>.</li>
+                        <li><code>dirb/</code> e <code>dirbuster/</code>: Dicionários focados em rotas e arquivos web.</li>
+                        <li><code>seclists/</code>: A coleção definitiva de testes de segurança (se instalada via <code>apt install seclists</code>).</li>
+                    </ul>
+
+                    <h3 style="margin-top: 2rem;">Repositórios Recomendados de Wordlists (Links Externos)</h3>
+                    <div class="grid-2col">
+                        <div class="card">
+                            <h4>Daniel Miessler / SecLists</h4>
+                            <p>O recurso essencial de segurança ofensiva com listas de credenciais, fuzzing, injeções, nomes de usuários e padrões corporativos.</p>
+                            <a href="https://github.com/danielmiessler/SecLists" target="_blank" class="badge badge-info" style="text-decoration:none; display:inline-block; margin-top:0.5rem;">Acessar GitHub</a>
+                        </div>
+                        <div class="card">
+                            <h4>Weakpass</h4>
+                            <p>Biblioteca gigantesca de dicionários enormes (gigas de tamanho), ordenados por eficácia de quebra de hashes e estatísticas.</p>
+                            <a href="https://weakpass.com" target="_blank" class="badge badge-accent" style="text-decoration:none; display:inline-block; margin-top:0.5rem;">Acessar Weakpass</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: LEGISLAÇÃO E ÉTICA -->
+                <div id="tab-legal" class="tab-content">
+                    <h3>Marco Regulatório e Responsabilidade Civil</h3>
+                    <div class="warning-box">
+                        <p><strong>Aviso Importante:</strong> Obter ou quebrar credenciais sem autorização prévia por escrito é crime tipificado no Brasil (Lei Carolina Dieckmann / LGPD / Marco Civil da Internet).</p>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h5>Código Penal Brasileiro (Art. 154-A)</h5>
+                        <p>A invasão de dispositivo informático alheio, mediante violação indevida de mecanismo de segurança (como senhas), constitui crime sujeito a reclusão e multa. A simulação e os testes contidos neste laboratório são estritamente pedagógicos e executados na interface local (loopback).</p>
+                    </div>
+                    <div class="accordion-item" style="margin-top: 1rem;">
+                        <h5>LGPD (Lei 13.709/2018)</h5>
+                        <p>Wordlists geradas a partir de vazamentos reais podem conter Dados Pessoais Sensíveis. O manuseio de tais bases de dados para auditoria de credenciais corporativas deve seguir estritamente o princípio da necessidade e do legítimo interesse corporativo regulamentados.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: DECODERS & HASH ID -->
+            <section id="pane-ferramentas-web" class="content-pane">
+                <div class="page-header">
+                    <h2>Utilitários Locais de Decodificação e Identificação</h2>
+                    <p>Utilitários desenvolvidos em Javascript para auxiliar na decodificação de strings e identificação de hashes em tempo real.</p>
+                </div>
+
+                <div class="grid-2col">
+                    <!-- ENCODER / DECODER BASES -->
+                    <div class="card">
+                        <h3>Conversor de Encodings e Bases</h3>
+                        <p style="font-size:0.85rem; color:var(--color-text-muted); margin-bottom:1rem;">Converta texto em base64, base32, hex e binário.</p>
+                        
+                        <div style="display:flex; flex-direction:column; gap:0.8rem;">
+                            <label for="base-input">Entrada (Texto ou Codificado):</label>
+                            <textarea id="base-input" class="cyber-input" rows="3" placeholder="Digite o texto aqui..."></textarea>
+                            
+                            <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                                <button class="btn btn-secondary" onclick="convertBase('encode64')">Base64 Encode</button>
+                                <button class="btn btn-primary" onclick="convertBase('decode64')">Base64 Decode</button>
+                                <button class="btn btn-secondary" onclick="convertBase('encode32')">Base32 Encode</button>
+                                <button class="btn btn-primary" onclick="convertBase('decode32')">Base32 Decode</button>
+                                <button class="btn btn-secondary" onclick="convertBase('encodeHex')">HEX Encode</button>
+                                <button class="btn btn-primary" onclick="convertBase('decodeHex')">HEX Decode</button>
+                                <button class="btn btn-secondary" onclick="convertBase('encodeBin')">BIN Encode</button>
+                                <button class="btn btn-primary" onclick="convertBase('decodeBin')">BIN Decode</button>
+                                <button class="btn btn-secondary" onclick="convertBase('rot13')">ROT13</button>
+                            </div>
+                            
+                            <label for="base-output">Saída:</label>
+                            <textarea id="base-output" class="cyber-input" rows="3" readonly placeholder="Resultado..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- HASH IDENTIFIER -->
+                    <div class="card">
+                        <h3>Identificador de Algoritmo Hash</h3>
+                        <p style="font-size:0.85rem; color:var(--color-text-muted); margin-bottom:1rem;">Analisa as propriedades do hash (tamanho, formato) para identificar o algoritmo provável.</p>
+                        
+                        <div style="display:flex; flex-direction:column; gap:0.8rem;">
+                            <label for="hash-input">Hash para Identificar:</label>
+                            <input type="text" id="hash-input" class="cyber-input" placeholder="Cole o hash aqui (ex: 827ccb0eea8a706c4c34a16891f84e7b)">
+                            
+                            <button class="btn btn-primary" onclick="identifyHash()">Analisar Hash</button>
+                            
+                            <div id="hash-result" class="terminal-mock" style="display:none; padding:1rem; font-family:var(--font-mono); font-size:0.85rem; line-height:1.4;">
+                                <!-- Preenchido dinamicamente -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: TOOLKITS -->
+            <section id="pane-toolkits" class="content-pane">
+                <div class="page-header">
+                    <h2>Toolkits: Guias de Uso e Exemplos Práticos</h2>
+                    <p>Documentação rápida com exemplos prontos para copiar das principais ferramentas de quebra de senhas.</p>
+                </div>
+
+                <!-- Abas dos Toolkits -->
+                <div class="tabs-nav">
+                    <button class="tab-btn active" data-tab="tool-john">John the Ripper</button>
+                    <button class="tab-btn" data-tab="tool-hashcat">Hashcat</button>
+                    <button class="tab-btn" data-tab="tool-online">Ataques Online (Hydra/Medusa)</button>
+                </div>
+
+                <!-- TOOL: JOHN -->
+                <div id="tool-john" class="tab-content active">
+                    <h3>Manual Prático de Sobrevivência: John the Ripper</h3>
+                    <p>O John the Ripper é ideal para quebrar arquivos protegidos (ZIP, PDF, RAR, SSH, etc.) convertendo-os em hashes tratáveis.</p>
+                    
+                    <div class="toolkit-grid">
+                        <div class="toolkit-card">
+                            <div class="toolkit-header">
+                                <span class="toolkit-badge badge-nc">JOHN</span>
+                                <h3>Quebra de Arquivos Protegidos</h3>
+                            </div>
+                            <p class="toolkit-desc">Converta arquivos criptografados em arquivos de hash compreensíveis pelo John.</p>
+                            <div class="toolkit-section">
+                                <h5>⚡ Comandos Úteis</h5>
+                                <ul class="toolkit-list">
+                                    <li><code>zip2john backup.zip > zip.hash</code>: Extrai hash de arquivo ZIP.</li>
+                                    <li><code>pdf2john documento.pdf > pdf.hash</code>: Extrai hash de arquivo PDF.</li>
+                                    <li><code>ssh2john id_rsa > ssh.hash</code>: Extrai hash de chaves privadas SSH.</li>
+                                    <li><code>john --wordlist=/usr/share/wordlists/rockyou.txt zip.hash</code>: Quebra o hash do ZIP.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="toolkit-card">
+                            <div class="toolkit-header">
+                                <span class="toolkit-badge badge-nc">JOHN CONFIG</span>
+                                <h3>Formatos e Regras do John</h3>
+                            </div>
+                            <p class="toolkit-desc">Opções adicionais do John para acelerar ou personalizar a quebra.</p>
+                            <div class="toolkit-section">
+                                <h5>⚡ Comandos Úteis</h5>
+                                <ul class="toolkit-list">
+                                    <li><code>john --list=formats</code>: Lista todos os formatos suportados.</li>
+                                    <li><code>john --format=raw-md5 hash.txt</code>: Força formato MD5 cru.</li>
+                                    <li><code>john --rules --wordlist=dicio.txt hash.txt</code>: Ativa regras de mangling (mutação).</li>
+                                    <li><code>john --show hash.txt</code>: Exibe senhas quebradas anteriormente.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TOOL: HASHCAT -->
+                <div id="tool-hashcat" class="tab-content">
+                    <h3>Manual Prático de Sobrevivência: Hashcat</h3>
+                    <p>O Hashcat é o quebrador de hashes mais rápido do mundo, otimizado para extrair máxima performance de aceleradoras GPU (placas de vídeo).</p>
+                    
+                    <div class="toolkit-grid">
+                        <div class="toolkit-card">
+                            <div class="toolkit-header">
+                                <span class="toolkit-badge badge-nmap">MODOS DE ATAQUE</span>
+                                <h3>Tipos de Ataque (-a)</h3>
+                            </div>
+                            <p class="toolkit-desc">Controla a forma como o Hashcat gera palpites de senhas.</p>
+                            <div class="toolkit-section">
+                                <h5>⚡ Modos Principais</h5>
+                                <ul class="toolkit-list">
+                                    <li><code>-a 0</code>: Ataque direto por Dicionário (Straight) - Lê palavras da wordlist.</li>
+                                    <li><code>-a 1</code>: Combinator - Combina palavras de duas wordlists distintas.</li>
+                                    <li><code>-a 3</code>: Mask Attack - Brute force baseado em padrões/máscaras de caracteres.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="toolkit-card">
+                            <div class="toolkit-header">
+                                <span class="toolkit-badge badge-nmap">MODOS DE HASH (-m)</span>
+                                <h3>Lista de Modos Comuns</h3>
+                            </div>
+                            <p class="toolkit-desc">Diz ao Hashcat qual o algoritmo que está sendo quebrado.</p>
+                            <div class="toolkit-section">
+                                <h5>⚡ Modos Comuns</h5>
+                                <ul class="toolkit-list">
+                                    <li><code>-m 0</code>: MD5</li>
+                                    <li><code>-m 100</code>: SHA-1</li>
+                                    <li><code>-m 1000</code>: NTLM (Windows)</li>
+                                    <li><code>-m 1400</code>: SHA-256</li>
+                                    <li><code>-m 1800</code>: sha512crypt (Debian/Linux default)</li>
+                                    <li><code>-m 5600</code>: NetNTLMv2 (Autenticação de Rede Windows)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 style="margin-top: 1.5rem;">Exemplo de Comando de Quebra Direta</h4>
+                    <div class="code-copy">
+                        <span>hashcat -a 0 -m 1400 hashes.txt /usr/share/wordlists/rockyou.txt</span>
+                        <button class="btn-copy" onclick="navigator.clipboard.writeText('hashcat -a 0 -m 1400 hashes.txt /usr/share/wordlists/rockyou.txt')">Copiar</button>
+                    </div>
+                </div>
+
+                <!-- TOOL: ONLINE -->
+                <div id="tool-online" class="tab-content">
+                    <h3>Ataques de Força Bruta Online (Hydra & Medusa)</h3>
+                    <p>Utilizados para auditar credenciais diretamente contra serviços rodando na rede (portas ativas do laboratório).</p>
+                    
+                    <div class="toolkit-grid">
+                        <div class="toolkit-card">
+                            <div class="toolkit-header">
+                                <span class="toolkit-badge badge-gobuster">HYDRA SSH</span>
+                                <h3>Quebra de SSH (Porta 9022)</h3>
+                            </div>
+                            <p class="toolkit-desc">Realize testes de senhas contra o console SSH simulado na porta 9022.</p>
+                            <div class="toolkit-section">
+                                <h5>⚡ Exemplo de Comando</h5>
+                                <ul class="toolkit-list">
+                                    <li><code>hydra -l admin -P /usr/share/wordlists/rockyou.txt ssh://127.0.0.1:9022 -t 4</code></li>
+                                    <li><em>Observe as tentativas incorretas caindo em tempo real na Console de Auditoria!</em></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="toolkit-card">
+                            <div class="toolkit-header">
+                                <span class="toolkit-badge badge-gobuster">HYDRA FTP</span>
+                                <h3>Quebra de FTP (Porta 9021)</h3>
+                            </div>
+                            <p class="toolkit-desc">Ataque contra o serviço FTP simulado na porta 9021.</p>
+                            <div class="toolkit-section">
+                                <h5>⚡ Exemplo de Comando</h5>
+                                <ul class="toolkit-list">
+                                    <li><code>hydra -l ftp_admin -P /usr/share/wordlists/rockyou.txt ftp://127.0.0.1:9021 -vV</code></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="toolkit-card">
+                            <div class="toolkit-header">
+                                <span class="toolkit-badge badge-accent">HASH ONLINE</span>
+                                <h3>Quebradores de Hash na Web</h3>
+                            </div>
+                            <p class="toolkit-desc">Plataformas web que consultam bancos de dados gigantescos e rainbow tables para decifrar hashes sem processamento local.</p>
+                            <div class="toolkit-section">
+                                <h5>🔗 Principais Ferramentas Online</h5>
+                                <ul class="toolkit-list">
+                                    <li><strong><a href="https://crackstation.net" target="_blank" style="color: var(--color-primary); text-decoration: none;">CrackStation</a></strong>: Banco de dados com mais de 15 bilhões de entradas para quebra instantânea de MD5, SHA1, SHA256, etc.</li>
+                                    <li><strong><a href="https://md5decrypt.net" target="_blank" style="color: var(--color-primary); text-decoration: none;">MD5Decrypt</a></strong>: Excelente suporte para decifrar hashes MD5, SHA-256, SHA-512 e outros algoritmos comuns.</li>
+                                    <li><strong><a href="https://www.onlinehashcrack.com" target="_blank" style="color: var(--color-primary); text-decoration: none;">Online Hash Crack</a></strong>: Focado em quebra na nuvem, com suporte para WPA/WPA2, hashes Windows (NTLM) e muito mais.</li>
+                                    <li><strong><a href="https://hashes.com" target="_blank" style="color: var(--color-primary); text-decoration: none;">Hashes.com</a></strong>: Ferramenta moderna e eficiente de busca, verificação e quebra de hashes na nuvem.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: DESAFIOS (CTF) -->
+            <section id="pane-desafios" class="content-pane">
+                <div class="page-header">
+                    <h2>Painel de Desafios (Capture The Flag)</h2>
+                    <p>Estude os enunciados e insira as respostas/flags corretas obtidas via terminal para progredir.</p>
+                </div>
+
+                <div class="challenges-top-bar">
+                    <div class="challenges-controls">
+                        <div class="filter-group">
+                            <label for="filter-module">Categoria:</label>
+                            <select id="filter-module" class="cyber-select">
+                                <option value="all">Todas as Categorias (40 Níveis)</option>
+                                <option value="encodings">Encodings & Identificação (10 Níveis)</option>
+                                <option value="john">John the Ripper (10 Níveis)</option>
+                                <option value="hashcat">Hashcat (10 Níveis)</option>
+                                <option value="wordlists">Wordlists & Recon (10 Níveis)</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-difficulty">Dificuldade:</label>
+                            <select id="filter-difficulty" class="cyber-select">
+                                <option value="all">Todas</option>
+                                <option value="fácil">Fácil</option>
+                                <option value="médio">Médio</option>
+                                <option value="difícil">Difícil</option>
+                            </select>
+                        </div>
+                        <div class="search-group">
+                            <label for="search-challenge">Buscar:</label>
+                            <input type="text" id="search-challenge" class="cyber-input" placeholder="Buscar por título ou ID...">
+                        </div>
+                    </div>
+                    
+                    <div class="hints-summary-widget" style="display: flex; align-items: center; gap: 1rem;">
+                        <span>Dicas Usadas: <strong id="hints-count" class="text-primary">0/5</strong></span>
+                        <button class="btn btn-danger" id="btn-reset-ctf" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;">Resetar Progresso</button>
+                    </div>
+                </div>
+
+                <div class="challenges-list" id="challenges-container">
+                    <!-- Gerado dinamicamente via JS (app.js) -->
+                </div>
+            </section>
+
+            <!-- SECTION: CONSOLE DE AUDITORIA -->
+            <section id="pane-ids" class="content-pane">
+                <div class="page-header">
+                    <h2>Console de Auditoria de Acessos e Brute-force</h2>
+                    <p>Monitore os acessos e tentativas de quebra de senhas nos serviços locais em tempo real.</p>
+                </div>
+
+                <div class="ids-controls">
+                    <button class="btn btn-secondary" id="btn-clear-logs">Limpar Logs</button>
+                    <button class="btn btn-secondary" id="btn-pause-logs">Pausar Captura</button>
+                    <select id="ids-filter-select" class="cyber-select">
+                        <option value="all">Mostrar Tudo</option>
+                        <option value="SSH">Apenas SSH (Porta 9022)</option>
+                        <option value="FTP">Apenas FTP (Porta 9021)</option>
+                        <option value="HASH">Apenas Desafio TCP (Porta 9005)</option>
+                        <option value="HTTP">Apenas HTTP Web</option>
+                    </select>
+                    <div class="ids-filter-status">
+                        <span class="pulse-indicator-small" id="ids-status-dot"></span>
+                        <span id="ids-status-text">Monitorando serviços de rede...</span>
+                    </div>
+                </div>
+
+                <div class="console-terminal">
+                    <div class="terminal-table-header">
+                        <div class="col-time">Hora</div>
+                        <div class="col-origem">Serviço</div>
+                        <div class="col-destino">Usuário</div>
+                        <div class="col-flags">Status</div>
+                        <div class="col-desc">Detalhes da Tentativa</div>
+                    </div>
+                    <div class="terminal-logs-body" id="ids-logs-container">
+                        <div class="empty-logs">Nenhuma tentativa de login ou quebra de credenciais detectada nos serviços locais ainda...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: DESEMPENHO -->
+            <section id="pane-desempenho" class="content-pane">
+                <div class="page-header">
+                    <h2>Relatório de Desempenho do Aluno</h2>
+                    <p>Mapeamento de habilidades e progresso de quebra de hashes nas categorias do laboratório.</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-title">Pontuação Total</span>
+                        <div class="stat-value text-accent" id="perf-total-score">0 Pts</div>
+                        <p class="stat-desc">Acumulada resolvendo desafios de criptoanálise.</p>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-title">Conclusão do Lab</span>
+                        <div class="stat-value text-success" id="perf-completion-pct">0%</div>
+                        <p class="stat-desc" id="perf-solved-fraction">0 de 40 resolvidos</p>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-title">Perfil do Aluno</span>
+                        <div class="stat-value text-warning" id="perf-hacker-profile" style="font-size: 1.8rem; padding: 0.2rem 0;">Script Kiddie</div>
+                        <p class="stat-desc" id="perf-hacker-desc">Iniciando na arte de quebrar hashes.</p>
+                    </div>
+                </div>
+
+                <div class="performance-charts-container">
+                    <div class="chart-box">
+                        <h4>Domínio por Categoria</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Nível de domínio (0% a 100%) baseado nas respostas corretas.</p>
+                        
+                        <div class="category-bars">
+                            <div class="bar-item">
+                                <div class="bar-info">
+                                    <span>Encodings & Hash ID</span>
+                                    <span id="bar-pct-encodings">0%</span>
+                                </div>
+                                <div class="bar-track">
+                                    <div class="bar-fill nmap-fill" id="bar-fill-encodings" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                            <div class="bar-item">
+                                <div class="bar-info">
+                                    <span>John the Ripper</span>
+                                    <span id="bar-pct-john">0%</span>
+                                </div>
+                                <div class="bar-track">
+                                    <div class="bar-fill netcat-fill" id="bar-fill-john" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                            <div class="bar-item">
+                                <div class="bar-info">
+                                    <span>Hashcat</span>
+                                    <span id="bar-pct-hashcat">0%</span>
+                                </div>
+                                <div class="bar-track">
+                                    <div class="bar-fill wireshark-fill" id="bar-fill-hashcat" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                            <div class="bar-item">
+                                <div class="bar-info">
+                                    <span>Wordlists & Recon</span>
+                                    <span id="bar-pct-wordlists">0%</span>
+                                </div>
+                                <div class="bar-track">
+                                    <div class="bar-fill ffuf-fill" id="bar-fill-wordlists" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-box">
+                        <h4>Métricas Adicionais</h4>
+                        <div class="strengths-weaknesses">
+                            <div class="sw-item">
+                                <h5 class="text-success">💪 Habilidades Fortes</h5>
+                                <ul id="perf-strengths-list">
+                                    <li>Nenhuma categoria dominada ainda.</li>
+                                </ul>
+                            </div>
+                            <div class="sw-item" style="margin-top: 1rem;">
+                                <h5 class="text-danger">⚠️ Foco de Aprendizado</h5>
+                                <ul id="perf-weaknesses-list">
+                                    <li>Complete desafios para mapear suas fraquezas.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FOOTER DO PROJETO -->
+            <footer class="main-footer">
+                <p>&copy; Copyright Guilherme Legal de Oliveira.</p>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Script principal de lógica -->
+    <script src="app.js"></script>
+</body>
+</html>
