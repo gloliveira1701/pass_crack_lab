@@ -77,8 +77,8 @@ document.addEventListener('DOMContentLoaded', () => {
             "title": "Cifra de Substituição Cíclica",
             "difficulty": "fácil",
             "points": 50,
-            "desc": "Esta cifra rotaciona as letras do alfabeto em algumas posições fixas. Decifre: <code>SYNT{EBG13_RAPEVCGVBA}</code>.",
-            "cmd": "echo 'SYNT{EBG13_RAPEVCGVBA}' | tr 'A-Za-z' 'N-ZA-Mn-za-m'",
+            "desc": "Esta cifra rotaciona as letras do alfabeto em algumas posições fixas. Decifre: <code>SYNT{EBG13_RAPELCGVBA}</code>.",
+            "cmd": "echo 'SYNT{EBG13_RAPELCGVBA}' | tr 'A-Za-z' 'N-ZA-Mn-za-m'",
             "help": "Por rotacionar exatamente a metade das 26 letras do alfabeto, a mesma função codifica e decodifica.",
             "hint": "Use a aba Decoders ou comandos de substituição de caracteres no Linux.",
             "category": "encodings"
