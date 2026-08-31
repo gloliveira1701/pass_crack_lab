@@ -301,10 +301,10 @@ document.addEventListener('DOMContentLoaded', () => {
             "title": "Cracking SHA-1 Offline com Hashcat",
             "difficulty": "difícil",
             "points": 150,
-            "desc": "Quebre o hash SHA-1 <code>5ba3078a9c22428157092ab7900d7d41d2965fd2</code> usando o Hashcat. Qual é a senha original?",
-            "cmd": "echo '5ba3078a9c22428157092ab7900d7d41d2965fd2' > sha1.txt && hashcat -a 0 -m 100 sha1.txt /usr/share/wordlists/rockyou.txt",
+            "desc": "Quebre o hash SHA-1 <code>d5d3b7000de4bd8cea233dce546eda3176e840a0</code> usando o Hashcat. Qual é a senha original?",
+            "cmd": "echo 'd5d3b7000de4bd8cea233dce546eda3176e840a0' > sha1.txt && hashcat -a 0 -m 100 sha1.txt /usr/share/wordlists/rockyou.txt",
             "help": "Dica: Garanta que você especificou o modo 100 (SHA-1) no Hashcat.",
-            "hint": "É o nome de uma famosa marca esportiva ou um nome próprio americano muito associado ao basquete (6 letras): jordan.",
+            "hint": "É o nome de uma famosa marca esportiva ou um nome próprio americano muito associado ao basquete (6 letras).",
             "category": "hashcat"
         },
         {
